@@ -307,7 +307,7 @@ fun MessageItem(
                         bitmap = image.asImageBitmap(),
                         contentDescription = null,
                         modifier = Modifier
-                            .height(40.dp)
+                            .height(60.dp)
                             .border(
                                 width = 2.dp,
                                 color = MaterialTheme.colorScheme.surfaceVariant,
