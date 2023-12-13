@@ -3,6 +3,7 @@ package com.yveskalume.geminichat
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.provider.MediaStore
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -41,6 +42,7 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -57,16 +59,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import com.yveskalume.geminichat.ui.theme.GeminiChatTheme
 
 class MainActivity : ComponentActivity() {
 
 
-    @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+    @OptIn(
+        ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class,
+        ExperimentalComposeUiApi::class
+    )
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val mainViewModel by viewModels<MainViewModel>()
@@ -80,6 +87,8 @@ class MainActivity : ComponentActivity() {
 
                 val conversations = mainViewModel.conversations
                 val isGenerating by mainViewModel.isGenerating
+
+                val keyboardController = LocalSoftwareKeyboardController.current
 
                 val imageBitmaps: SnapshotStateList<Bitmap> = remember {
                     mutableStateListOf()
@@ -168,11 +177,22 @@ class MainActivity : ComponentActivity() {
                                     Spacer(modifier = Modifier.width(8.dp))
 
                                     FloatingActionButton(
+                                        elevation = FloatingActionButtonDefaults.elevation(
+                                            defaultElevation = if (isGenerating) 0.dp else 6.dp,
+                                            pressedElevation = 0.dp
+                                        ),
                                         onClick = {
                                             if (promptText.isNotBlank() && isGenerating.not()) {
                                                 mainViewModel.sendText(promptText, imageBitmaps)
                                                 promptText = ""
                                                 imageBitmaps.clear()
+                                                keyboardController?.hide()
+                                            } else if (promptText.isBlank()) {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Please enter a message",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
                                             }
                                         }
                                     ) {
@@ -213,7 +233,6 @@ fun ConversationScreen(
     modifier: Modifier = Modifier
 ) {
     val lazyListState = rememberLazyListState()
-
 
     LazyColumn(
         state = lazyListState,
@@ -278,8 +297,9 @@ fun MessageItem(
         if (images.isNotEmpty()) {
             LazyRow(
                 modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                reverseLayout = true,
+                contentPadding = PaddingValues(horizontal = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End)
             ) {
                 items(images.size) { index ->
                     val image = images[index]
