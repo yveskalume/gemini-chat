@@ -7,9 +7,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
@@ -162,9 +160,14 @@ class MainActivity : ComponentActivity() {
                                         label = { Text(text = "Message") },
                                         trailingIcon = {
                                             IconButton(onClick = {
-                                                photoPicker.launch(
-                                                    PickVisualMediaRequest(PickVisualMedia.ImageOnly)
-                                                )
+                                                Toast.makeText(
+                                                    context,
+                                                    "Images are not supported for the multi-turn conversations",
+                                                    Toast.LENGTH_LONG
+                                                ).show()
+//                                                photoPicker.launch(
+//                                                    PickVisualMediaRequest(PickVisualMedia.ImageOnly)
+//                                                )
                                             }) {
                                                 Icon(
                                                     imageVector = Icons.Default.AddCircle,
@@ -243,7 +246,7 @@ fun ConversationScreen(
         items(conversations.size) { index ->
             val conversation = conversations[index]
             MessageItem(
-                isInComing = conversation.first == "received",
+                isInComing = conversation.first == "model",
                 images = conversation.third ?: emptyList(),
                 content = conversation.second,
                 modifier = Modifier
